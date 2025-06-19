@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fitness Pace & Calorie Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .result {
+            background: #f0f4f8;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            color: #333;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .result p {
+            margin: 6px 0;
+        }
+
+        .result .section {
+            border-top: 1px solid #d0d7de;
+            margin-top: 12px;
+            padding-top: 10px;
+        }
+
+        .result .label {
+            font-weight: 600;
+            color: #444;
+        }
+
+        .result .value {
+            margin-left: 4px;
+            color: #222;
+        }
+
+        .result-zone {
+            margin-left: 12px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>🏃‍♂️ Fitness Pace & Calorie Calculator</h2>
+
+        <label for="speed">Speed (km/h)</label>
+        <input type="number" id="speed" step="0.1" placeholder="8.5" oninput="convert()">
+
+        <label for="distance">Distance (km)</label>
+        <input type="number" id="distance" step="0.1" value="5" oninput="convert()">
+
+        <label for="incline">Incline (%)</label>
+        <input type="number" id="incline" step="0.1" value="0" oninput="convert()">
+
+        <label for="weight">Your Weight (kg)</label>
+        <input type="number" id="weight" step="1" value="93" oninput="convert()">
+
+        <label for="height">Your Height (cm)</label>
+        <input type="number" id="height" step="1" value="173" oninput="convert()">
+
+        <label for="restingHR">Resting HR (bpm)</label>
+        <input type="number" id="restingHR" step="1" value="65" oninput="convert()">
+
+        <label for="age">Your Age</label>
+        <input type="number" id="age" step="1" value="27" oninput="convert()">
+
+        <label for="gender">Gender</label>
+        <select id="gender" onchange="convert()">
+            <option value="male" selected>Male</option>
+            <option value="female">Female</option>
+        </select>
+
+        <div class="result">
+            <p id="adjustedSpeedResult">–</p>
+            <p id="paceResult">–</p>
+            <p id="totalTimeResult">–</p>
+            <p id="metResult">–</p>
+            <p id="calorieResult">–</p>
+            <p id="bmiResult">–</p>
+            <p id="bmrResult">–</p>
+            <p id="hrResult">–</p>
+        </div>
+    </div>
+
+    <script>
+        function convert() {
+            const speed = parseFloat(document.getElementById("speed").value);
+            const distance = parseFloat(document.getElementById("distance").value);
+            const incline = parseFloat(document.getElementById("incline").value);
+            const weight = parseFloat(document.getElementById("weight").value);
+            const height = parseFloat(document.getElementById("height").value);
+            const age = parseInt(document.getElementById("age").value);
+            const gender = document.getElementById("gender").value;
+
+            const paceResult = document.getElementById("paceResult");
+            const totalTimeResult = document.getElementById("totalTimeResult");
+            const adjustedSpeedResult = document.getElementById("adjustedSpeedResult");
+            const metResult = document.getElementById("metResult");
+            const calorieResult = document.getElementById("calorieResult");
+            const bmiResult = document.getElementById("bmiResult");
+            const bmrResult = document.getElementById("bmrResult");
+            const hrResult = document.getElementById("hrResult");
+
+            if (!speed || !distance || !weight || !height || !age || speed <= 0 || distance <= 0 || weight <= 0 || height <= 0 || age <= 0 || incline < 0) {
+                paceResult.innerText = totalTimeResult.innerText = adjustedSpeedResult.innerText = metResult.innerText = calorieResult.innerText = bmiResult.innerText = bmrResult.innerText = hrResult.innerText = '–';
+                return;
+            }
+
+            let adjustedSpeed = speed - (incline * 0.1);
+            if (adjustedSpeed < 1) adjustedSpeed = 1;
+
+            const paceInMin = 60 / adjustedSpeed;
+            const paceMin = Math.floor(paceInMin);
+            const paceSec = Math.round((paceInMin - paceMin) * 60);
+
+            const totalMinutes = paceInMin * distance;
+            const totalMin = Math.floor(totalMinutes);
+            const totalSec = Math.round((totalMinutes - totalMin) * 60);
+
+            let met = 1;
+            if (adjustedSpeed < 5) met = 3.5;
+            else if (adjustedSpeed < 6.5) met = 4.3;
+            else if (adjustedSpeed < 8) met = 6.0;
+            else if (adjustedSpeed < 10) met = 8.3;
+            else met = 10.0;
+            met += incline * 0.5;
+
+            const calories = met * weight * (totalMinutes / 60);
+
+            const heightM = height / 100;
+            const bmi = weight / (heightM * heightM);
+
+            let bmr = 0;
+            if (gender === "male") {
+                bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+            } else {
+                bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+            }
+
+            const hrMax = 220 - age;
+            const hrFatBurn = `${Math.round(hrMax * 0.6)}–${Math.round(hrMax * 0.7)} bpm`;
+            const hrCardio = `${Math.round(hrMax * 0.7)}–${Math.round(hrMax * 0.85)} bpm`;
+            const hrRest = parseInt(document.getElementById("restingHR").value);
+            const hrReserve = hrMax - hrRest;
+
+            const zone1Low = Math.round(hrReserve * 0.5 + hrRest);
+            const zone1High = Math.round(hrReserve * 0.6 + hrRest);
+            const zone2Low = Math.round(hrReserve * 0.6 + hrRest);
+            const zone2High = Math.round(hrReserve * 0.7 + hrRest);
+            const zone3Low = Math.round(hrReserve * 0.7 + hrRest);
+            const zone3High = Math.round(hrReserve * 0.85 + hrRest);
+            const zone4Low = Math.round(hrReserve * 0.85 + hrRest);
+            const zone4High = Math.round(hrReserve * 0.9 + hrRest);
+            const zone5Low = Math.round(hrReserve * 0.9 + hrRest);
+            const maxZone = Math.round(hrReserve * 1 + hrRest);
+
+            adjustedSpeedResult.innerHTML =
+                `<span class="label">Adjusted Speed:</span><span class="value">${adjustedSpeed.toFixed(2)} km/h</span> (Incline: ${incline}%)`;
+
+            paceResult.innerHTML =
+                `<span class="label">Pace:</span><span class="value">${paceMin} min ${paceSec.toString().padStart(2, '0')} sec</span> per km`;
+
+            totalTimeResult.innerHTML =
+                `<span class="label">Total Time:</span><span class="value">${totalMin} min ${totalSec.toString().padStart(2, '0')} sec</span> for ${distance} km`;
+
+            metResult.innerHTML =
+                `<span class="label">Estimated MET:</span><span class="value">${met.toFixed(1)} MET</span>`;
+
+            calorieResult.innerHTML =
+                `<span class="label">Estimated Calories:</span><span class="value">${calories.toFixed(0)} kcal</span> (for ${weight} kg)`;
+
+            bmiResult.innerHTML =
+                `<span class="label">BMI:</span><span class="value">${bmi.toFixed(1)} (${bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese'})</span>`;
+
+            bmrResult.innerHTML =
+                `<span class="label">Estimated BMR:</span><span class="value">${Math.round(bmr)} kcal/day</span>`;
+
+            hrResult.innerHTML = `
+  <div class="label">Heart Rate Zones (Karvonen):</div>
+  <div class="result-zone">
+    <div><strong>Zone 1 Light:</strong> ${zone1Low}–${zone2Low} bpm</div>
+    <div><strong>Zone 2 Fat Burn:</strong> ${zone2Low}–${zone2High} bpm</div>
+    <div><strong>Zone 3 Cardio:</strong> ${zone3Low}–${zone3High} bpm</div>
+    <div><strong>Zone 4 Anaerobic:</strong> ${zone4Low}–${zone4High} bpm</div>
+    <div><strong>Zone 5 Unhealthy:</strong>  ${zone5Low}–${maxZone} bpm</div>
+    <div><strong>Max:</strong> ${maxZone} bpm</div>
+  </div>`;
+
+        }
+    </script>
+</body>
+
+</html>
